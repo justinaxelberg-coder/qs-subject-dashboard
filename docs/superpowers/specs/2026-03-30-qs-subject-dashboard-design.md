@@ -145,7 +145,7 @@ Only subjects where at least 1 of the 6 target universities appears in the ranki
 
 - Select one focus university
 - Two peer sources:
-  - **Structural peers (auto)**: institutions with similar scholarly output volume (within +/-30% band) in the same faculty area, ranked by QS overall score, filtered to those scoring slightly better (up to 20 positions higher), top 5 shown
+  - **Structural peers (auto)**: institutions with similar scholarly output volume (within +/-30% band) in the same faculty area, ranked by QS overall score (the university's overall ranking score, not a single indicator), filtered to those scoring slightly better (up to 20 positions higher in overall rank), top 5 shown
   - **Manual peers**: from `peers.csv`, always shown
 - Table: focus university at top, peers below, columns = raw SciVal values + QS scores per indicator
 - Conditional formatting: green = focus leads, red = focus trails
@@ -171,7 +171,7 @@ Only subjects where at least 1 of the 6 target universities appears in the ranki
 
 - Each tab opens with a headline insight in plain language, auto-generated from data
 - Chart below the headline
-- Collapsible data table below chart (collapsed by default in leadership view, expanded in analyst view)
+- Collapsible data table below chart (collapsed by default — leadership users stay at chart level, analyst users expand for raw numbers; no explicit mode switcher, just a toggle on each table)
 - Streamlit native column layout, sidebar fixed, main area scrolls
 
 ## Technical Stack

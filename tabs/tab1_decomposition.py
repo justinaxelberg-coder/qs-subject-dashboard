@@ -16,6 +16,23 @@ from src.insights import decomposition_insight
 from src.data_loader import filter_target_universities
 
 
+def _format_rank(rank_val):
+    """Format rank for display — handles both numeric and band strings."""
+    if rank_val is None or (isinstance(rank_val, float) and pd.isna(rank_val)):
+        return "—"
+    s = str(rank_val).strip()
+    if s in ("nan", "None", ""):
+        return "—"
+    # Already a band like "251-300"
+    if "-" in s:
+        return s
+    # Plain number
+    try:
+        return f"#{int(float(s))}"
+    except (ValueError, TypeError):
+        return s
+
+
 def render(qs_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
     if selected_subject == "(no subjects available)":
         st.warning("No subjects available for this faculty area.")
@@ -51,7 +68,7 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         # Replace NaN with 0
         scores = {k: (v if pd.notna(v) else 0) for k, v in scores.items()}
         contributions[uni_short] = calculate_weighted_contributions(scores, subject_weights)
-        uni_ranks[uni_short] = row.get("rank")
+        uni_ranks[uni_short] = row.get("rank_display", row.get("rank"))
         uni_scores[uni_short] = row.get("overall_score")
 
     # Ranking position summary
@@ -60,7 +77,7 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         with rank_cols[i]:
             rank_val = uni_ranks.get(uni)
             score_val = uni_scores.get(uni)
-            rank_display = f"#{int(rank_val)}" if pd.notna(rank_val) else "Unranked"
+            rank_display = _format_rank(rank_val)
             score_display = f"{score_val:.1f}" if pd.notna(score_val) else "—"
             st.metric(uni, rank_display, help=f"Overall score: {score_display}")
 
@@ -112,7 +129,7 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
             rank_val = uni_ranks.get(uni)
             row = {
                 "University": uni,
-                "Rank": f"#{int(rank_val)}" if pd.notna(rank_val) else "—",
+                "Rank": _format_rank(rank_val),
                 "Score": f"{uni_scores.get(uni, 0):.1f}" if pd.notna(uni_scores.get(uni)) else "—",
             }
             for ind in indicators_in_use:

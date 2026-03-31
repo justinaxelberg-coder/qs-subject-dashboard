@@ -10,6 +10,27 @@ import pandas as pd
 from src.constants import TARGET_UNIVERSITIES, QS_COLUMN_TO_INDICATOR
 
 
+def _parse_rank_numeric(rank_str: str) -> float:
+    """Parse rank string to numeric. For bands like '251-300', returns midpoint (275.5)."""
+    rank_str = str(rank_str).strip()
+    if "-" in rank_str:
+        parts = rank_str.split("-")
+        try:
+            low = int(parts[0].strip().rstrip("+"))
+            high = int(parts[1].strip().rstrip("+"))
+            return (low + high) / 2.0
+        except (ValueError, IndexError):
+            pass
+    # Try plain numeric
+    cleaned = re.sub(r"[^\d]", "", rank_str)
+    if cleaned:
+        try:
+            return float(cleaned)
+        except ValueError:
+            pass
+    return float("nan")
+
+
 def detect_qs_years(qs_dir: str = "data/qs") -> list[int]:
     years = set()
     for f in Path(qs_dir).glob("*.xlsx"):
@@ -64,12 +85,11 @@ def parse_qs_subject_sheet(filepath: str, sheet_name: str, year: int, faculty_ar
     result["faculty_area"] = [faculty_area] * n_rows
     result["country"] = df[country_col].astype(str).str.strip().values if country_col else [None] * n_rows
 
-    # Rank from first column
+    # Rank from first column — preserve as string to keep bands like "251-300"
     rank_col = df.columns[0]
-    result["rank"] = pd.to_numeric(
-        df[rank_col].astype(str).str.strip().str.replace(r"[^\d]", "", regex=True),
-        errors="coerce",
-    )
+    result["rank_display"] = df[rank_col].astype(str).str.strip().values
+    # Also store a numeric rank (use midpoint for bands, e.g. "251-300" -> 275)
+    result["rank"] = result["rank_display"].apply(_parse_rank_numeric)
 
     # Overall score
     if score_col:

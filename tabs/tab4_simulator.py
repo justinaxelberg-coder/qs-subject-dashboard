@@ -10,6 +10,50 @@ from src.weights import get_subject_weights
 from src.simulator import simulate_score_change
 
 
+def _format_rank(rank_val):
+    """Format rank for display — handles both numeric and band strings."""
+    if rank_val is None or (isinstance(rank_val, float) and pd.isna(rank_val)):
+        return "—"
+    s = str(rank_val).strip()
+    if s in ("nan", "None", ""):
+        return "—"
+    if "-" in s:
+        return s
+    try:
+        return f"#{int(float(s))}"
+    except (ValueError, TypeError):
+        return s
+
+
+def _estimate_rank_band(simulated_score, subject_df):
+    """Estimate ranking band for a simulated score.
+
+    Returns a display string like '#88' or '251-300'.
+    """
+    ranked = subject_df[["rank_display", "overall_score"]].dropna(subset=["overall_score"]).copy()
+    ranked = ranked.sort_values("overall_score", ascending=False).reset_index(drop=True)
+
+    if ranked.empty or pd.isna(simulated_score):
+        return "—"
+
+    # Find where the simulated score would slot in
+    # Look for the first row where score is <= simulated score
+    for idx, row in ranked.iterrows():
+        if row["overall_score"] <= simulated_score:
+            # This university has a lower or equal score — we'd be at this position or above
+            if idx == 0:
+                return _format_rank(row["rank_display"])
+            # Return the rank of the university just above us in score
+            prev_row = ranked.iloc[idx - 1]
+            # If we match the prev score, same rank; otherwise use the current position's rank
+            if abs(row["overall_score"] - simulated_score) < 0.05:
+                return _format_rank(row["rank_display"])
+            return _format_rank(prev_row["rank_display"])
+
+    # Score is below everyone — return last rank
+    return _format_rank(ranked.iloc[-1]["rank_display"])
+
+
 def render(qs_data, scival_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
     st.subheader(f"Score Simulator — {selected_subject}")
 
@@ -51,13 +95,14 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
         val = focus_row.get(ind)
         current_scores[ind] = float(val) if pd.notna(val) else 0.0
 
-    current_rank = focus_row.get("rank")
+    current_rank_display = focus_row.get("rank_display", focus_row.get("rank"))
+    current_rank_numeric = focus_row.get("rank")
     current_overall = focus_row.get("overall_score")
 
     # Show current position
-    rank_display = f"#{int(current_rank)}" if pd.notna(current_rank) else "Unranked"
+    rank_str = _format_rank(current_rank_display)
     score_display = f"{current_overall:.1f}" if pd.notna(current_overall) else "—"
-    st.markdown(f"**Current position:** {rank_display} (score: {score_display})")
+    st.markdown(f"**Current position:** {rank_str} (score: {score_display})")
 
     st.markdown("---")
     st.markdown("**Adjust indicator scores to simulate changes:**")
@@ -81,14 +126,8 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
     result = simulate_score_change(current_scores, adjusted_scores, subject_weights)
 
     # Estimate new ranking position from score distribution
-    # Build score-to-rank mapping from all universities in this subject
-    score_rank_df = subject_df[["overall_score", "rank"]].dropna().sort_values("overall_score", ascending=False)
-
     simulated_overall = result["simulated_total"]
-    estimated_rank = _estimate_rank(simulated_overall, score_rank_df)
-    rank_delta = None
-    if pd.notna(current_rank) and estimated_rank is not None:
-        rank_delta = int(current_rank) - estimated_rank  # positive = improvement (lower rank number)
+    estimated_rank_str = _estimate_rank_band(simulated_overall, subject_df)
 
     # Display results
     st.markdown("---")
@@ -99,19 +138,9 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
         st.metric("Simulated Score", f"{result['simulated_total']:.1f}",
                    delta=f"{result['delta']:+.1f}")
     with col3:
-        st.metric("Current Rank", rank_display)
+        st.metric("Current Rank", rank_str)
     with col4:
-        if estimated_rank is not None:
-            new_rank_display = f"#{estimated_rank}"
-            if rank_delta is not None and rank_delta != 0:
-                # Positive rank_delta means improvement (moved up)
-                delta_str = f"{'↑' if rank_delta > 0 else '↓'} {abs(rank_delta)} places"
-                st.metric("Estimated Rank", new_rank_display, delta=delta_str,
-                          delta_color="normal" if rank_delta > 0 else "inverse")
-            else:
-                st.metric("Estimated Rank", new_rank_display)
-        else:
-            st.metric("Estimated Rank", "—")
+        st.metric("Estimated Rank", estimated_rank_str)
 
     # Per-indicator impact table
     if result["indicator_deltas"]:
@@ -141,24 +170,14 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
     )
 
 
-def _estimate_rank(simulated_score, score_rank_df):
-    """Estimate ranking position for a given score based on the score distribution."""
-    if score_rank_df.empty or pd.isna(simulated_score):
-        return None
-
-    # Count how many universities have a higher score
-    higher = score_rank_df[score_rank_df["overall_score"] > simulated_score]
-    if higher.empty:
-        return 1
-    # Rank = number of universities with higher score + 1
-    return len(higher) + 1
-
-
 def _show_ranking_context(subject_df, focus_row, simulated_score, subject_name):
     """Show universities near the current and simulated positions."""
-    ranked = subject_df[["institution", "rank", "overall_score"]].dropna(subset=["overall_score"]).copy()
+    cols_needed = ["institution", "rank_display", "overall_score"]
+    available_cols = [c for c in cols_needed if c in subject_df.columns]
+    if "rank_display" not in available_cols:
+        available_cols.append("rank") if "rank" in subject_df.columns else None
+    ranked = subject_df[available_cols].dropna(subset=["overall_score"]).copy()
     ranked = ranked.sort_values("overall_score", ascending=False).reset_index(drop=True)
-    ranked["position"] = range(1, len(ranked) + 1)
 
     focus_inst = focus_row["institution"]
 
@@ -177,28 +196,22 @@ def _show_ranking_context(subject_df, focus_row, simulated_score, subject_name):
     context[""] = context["institution"].apply(
         lambda x: "→" if x == focus_inst else ""
     )
-    short_names = {v: k for k, v in UNIVERSITY_SHORT_NAMES.items()}
     context["institution"] = context["institution"].apply(
         lambda x: UNIVERSITY_SHORT_NAMES.get(x, x)
     )
-    context = context.rename(columns={
-        "position": "Pos",
-        "institution": "University",
-        "overall_score": "Score",
-        "rank": "QS Rank",
-    })
-    context["QS Rank"] = context["QS Rank"].apply(lambda x: f"#{int(x)}" if pd.notna(x) else "—")
-    context["Score"] = context["Score"].apply(lambda x: f"{x:.1f}")
+
+    rank_col = "rank_display" if "rank_display" in context.columns else "rank"
+    context["QS Rank"] = context[rank_col].apply(_format_rank)
+    context["Score"] = context["overall_score"].apply(lambda x: f"{x:.1f}")
 
     st.dataframe(
-        context[["", "Pos", "University", "QS Rank", "Score"]],
+        context[["", "institution", "QS Rank", "Score"]].rename(columns={"institution": "University"}),
         use_container_width=True,
         hide_index=True,
     )
 
     if pd.notna(simulated_score):
-        # Show where simulated score would land
-        higher_count = len(ranked[ranked["overall_score"] > simulated_score])
+        est_rank = _estimate_rank_band(simulated_score, subject_df)
         st.info(f"With a simulated score of **{simulated_score:.1f}**, "
                 f"{UNIVERSITY_SHORT_NAMES.get(focus_inst, focus_inst)} would be at approximately "
-                f"**position #{higher_count + 1}** out of {len(ranked)} universities in {subject_name}.")
+                f"**{est_rank}** in {subject_name}.")

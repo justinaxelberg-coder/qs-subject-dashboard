@@ -114,7 +114,7 @@ with tab3:
 
 with tab4:
     from tabs.tab4_simulator import render
-    render(scival_data, weights, selected_universities, selected_faculty)
+    render(qs_data, scival_data, weights, selected_universities, selected_subject, selected_faculty, selected_year)
 
 with tab5:
     from tabs.tab5_benchmarking import render

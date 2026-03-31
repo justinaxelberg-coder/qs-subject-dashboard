@@ -42,6 +42,18 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
 
     focus_uni = st.selectbox("Focus university", available_unis, key="gap_focus")
 
+    # Show ranking positions for all universities
+    rank_cols = st.columns(min(len(available_unis), 6))
+    for i, uni in enumerate(available_unis):
+        uni_row = df[df["short_name"] == uni].iloc[0]
+        rank_val = uni_row.get("rank")
+        score_val = uni_row.get("overall_score")
+        with rank_cols[i % len(rank_cols)]:
+            rank_display = f"#{int(rank_val)}" if pd.notna(rank_val) else "Unranked"
+            score_display = f"{score_val:.1f}" if pd.notna(score_val) else "—"
+            label = f"**{uni}**" if uni == focus_uni else uni
+            st.metric(uni, rank_display, help=f"Overall score: {score_display}")
+
     # Get weights
     try:
         subject_weights = get_subject_weights(weights, selected_subject, faculty_area=selected_faculty)

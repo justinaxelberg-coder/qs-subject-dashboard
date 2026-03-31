@@ -40,8 +40,10 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         st.error(f"No weights defined for {selected_subject}. Check weights.json.")
         return
 
-    # Calculate weighted contributions per university
+    # Calculate weighted contributions per university and collect ranks
     contributions = {}
+    uni_ranks = {}
+    uni_scores = {}
     for _, row in df.iterrows():
         uni_full = row["institution"]
         uni_short = UNIVERSITY_SHORT_NAMES.get(uni_full, uni_full)
@@ -49,6 +51,18 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         # Replace NaN with 0
         scores = {k: (v if pd.notna(v) else 0) for k, v in scores.items()}
         contributions[uni_short] = calculate_weighted_contributions(scores, subject_weights)
+        uni_ranks[uni_short] = row.get("rank")
+        uni_scores[uni_short] = row.get("overall_score")
+
+    # Ranking position summary
+    rank_cols = st.columns(len(contributions))
+    for i, uni in enumerate(sorted(contributions.keys())):
+        with rank_cols[i]:
+            rank_val = uni_ranks.get(uni)
+            score_val = uni_scores.get(uni)
+            rank_display = f"#{int(rank_val)}" if pd.notna(rank_val) else "Unranked"
+            score_display = f"{score_val:.1f}" if pd.notna(score_val) else "—"
+            st.metric(uni, rank_display, help=f"Overall score: {score_display}")
 
     # Headline insight
     st.markdown(f"**{decomposition_insight(contributions, selected_subject)}**")
@@ -95,9 +109,14 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
     with st.expander("View raw data"):
         table_data = []
         for uni in universities:
-            row = {"University": uni}
+            rank_val = uni_ranks.get(uni)
+            row = {
+                "University": uni,
+                "Rank": f"#{int(rank_val)}" if pd.notna(rank_val) else "—",
+                "Score": f"{uni_scores.get(uni, 0):.1f}" if pd.notna(uni_scores.get(uni)) else "—",
+            }
             for ind in indicators_in_use:
                 row[INDICATOR_NAMES.get(ind, ind)] = f"{contributions[uni].get(ind, 0):.1f}"
-            row["Total"] = f"{sum(contributions[uni].values()):.1f}"
+            row["Total (weighted)"] = f"{sum(contributions[uni].values()):.1f}"
             table_data.append(row)
         st.dataframe(pd.DataFrame(table_data), use_container_width=True, hide_index=True)

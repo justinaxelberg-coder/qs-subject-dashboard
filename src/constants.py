@@ -4,7 +4,7 @@
 TARGET_UNIVERSITIES = [
     "Universidade de São Paulo",
     "Universidade Estadual de Campinas (Unicamp)",
-    "Universidade Estadual Paulista 'Júlio de Mesquita Filho'",
+    "UNESP",
     "Universidade Federal de São Paulo",
     "Universidade Federal de São Carlos (UFSCar)",
     "Universidade Federal do ABC",
@@ -14,7 +14,7 @@ TARGET_UNIVERSITIES = [
 UNIVERSITY_SHORT_NAMES = {
     "Universidade de São Paulo": "USP",
     "Universidade Estadual de Campinas (Unicamp)": "UNICAMP",
-    "Universidade Estadual Paulista 'Júlio de Mesquita Filho'": "UNESP",
+    "UNESP": "UNESP",
     "Universidade Federal de São Paulo": "UNIFESP",
     "Universidade Federal de São Carlos (UFSCar)": "UFSCar",
     "Universidade Federal do ABC": "UFABC",

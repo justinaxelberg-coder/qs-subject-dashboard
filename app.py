@@ -70,11 +70,15 @@ selected_universities = [short_to_full.get(s, s) for s in selected_short]
 selected_faculty = st.sidebar.selectbox("Faculty Area", FACULTY_AREAS)
 
 # Subject selector (filtered by faculty area and target universities)
+# Put broad field at the top as default, then individual subjects
 available_subjects = get_available_subjects(target_data, faculty_area=selected_faculty)
-selected_subject = st.sidebar.selectbox(
-    "Subject",
-    options=available_subjects if available_subjects else ["(no subjects available)"],
-)
+broad_label = f"📊 {selected_faculty} (Broad Field)"
+individual_subjects = [s for s in available_subjects if s != selected_faculty]
+subject_options = [broad_label] + sorted(individual_subjects) if available_subjects else ["(no subjects available)"]
+selected_subject_raw = st.sidebar.selectbox("Subject", options=subject_options)
+# Map broad label back to actual sheet name
+selected_subject = selected_faculty if selected_subject_raw == broad_label else selected_subject_raw
+is_broad_field = (selected_subject == selected_faculty)
 
 # Year selector
 available_years = sorted(target_data["year"].unique(), reverse=True)
@@ -106,7 +110,7 @@ with tab2:
 
 with tab3:
     from tabs.tab3_deep_dive import render
-    render(scival_data, selected_universities, selected_faculty)
+    render(scival_data, selected_universities, selected_faculty, is_broad_field)
 
 with tab4:
     from tabs.tab4_simulator import render

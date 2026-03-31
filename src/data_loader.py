@@ -21,46 +21,138 @@ def detect_qs_years(qs_dir: str = "data/qs") -> list[int]:
     return sorted(years, reverse=True)
 
 
-def parse_qs_subject_sheet(filepath: str, sheet_name: str, year: int) -> pd.DataFrame:
+def parse_qs_subject_sheet(filepath: str, sheet_name: str, year: int, faculty_area_map: dict = None) -> pd.DataFrame:
     raw = pd.read_excel(filepath, sheet_name=sheet_name, header=None)
+
+    # Determine faculty area from lookup map or sheet row 1
     faculty_area = None
-    if len(raw) > 2:
-        row2 = raw.iloc[2].dropna().tolist()
-        if len(row2) >= 2 and row2[0] == "Faculty Area":
-            faculty_area = str(row2[1])
+    if faculty_area_map and sheet_name in faculty_area_map:
+        faculty_area = faculty_area_map[sheet_name]
+
+    # Find header row: look for INSTITUTION/Institution and SCORE/Score
     header_row_idx = None
     for idx, row in raw.iterrows():
-        vals = [str(v).strip() for v in row.dropna().values]
-        if "Institution" in vals and "Score" in vals:
+        vals = [str(v).strip().upper() for v in row.dropna().values]
+        if "INSTITUTION" in vals and ("SCORE" in vals or "ACADEMIC" in vals):
             header_row_idx = idx
             break
     if header_row_idx is None:
         return pd.DataFrame()
+
     df = pd.read_excel(filepath, sheet_name=sheet_name, header=header_row_idx)
-    df = df.dropna(subset=["Institution"])
+    # Normalize column names to handle case differences
+    col_map = {c: c.strip() for c in df.columns}
+    df = df.rename(columns=col_map)
+
+    # Find institution column (case-insensitive)
+    inst_col = next((c for c in df.columns if c.upper() == "INSTITUTION"), None)
+    if inst_col is None:
+        return pd.DataFrame()
+    df = df.dropna(subset=[inst_col])
+
+    # Find country column
+    country_col = next((c for c in df.columns if "COUNTRY" in c.upper()), None)
+
+    # Find score column
+    score_col = next((c for c in df.columns if c.upper() == "SCORE"), None)
+
+    n_rows = len(df)
     result = pd.DataFrame()
-    result["year"] = year
-    result["subject"] = sheet_name
-    result["faculty_area"] = faculty_area
-    result["institution"] = df["Institution"].str.strip().values
-    result["country"] = df["Country"].str.strip().values if "Country" in df.columns else None
+    result["institution"] = df[inst_col].astype(str).str.strip().values
+    result["year"] = [year] * n_rows
+    result["subject"] = [sheet_name] * n_rows
+    result["faculty_area"] = [faculty_area] * n_rows
+    result["country"] = df[country_col].astype(str).str.strip().values if country_col else [None] * n_rows
+
+    # Rank from first column
     rank_col = df.columns[0]
     result["rank"] = pd.to_numeric(
         df[rank_col].astype(str).str.strip().str.replace(r"[^\d]", "", regex=True),
         errors="coerce",
     )
-    result["overall_score"] = pd.to_numeric(df["Score"], errors="coerce")
-    for col_name, indicator_code in QS_COLUMN_TO_INDICATOR.items():
-        if col_name in df.columns:
-            result[indicator_code] = pd.to_numeric(df[col_name], errors="coerce")
+
+    # Overall score
+    if score_col:
+        result["overall_score"] = pd.to_numeric(df[score_col], errors="coerce")
+    else:
+        result["overall_score"] = float("nan")
+
+    # Map indicator columns — handle both old (Academic, Citations, H, International)
+    # and new (ACADEMIC, CITATIONS, H, IRN) formats, skipping RANK columns
+    indicator_col_patterns = {
+        "AR": ["ACADEMIC"],
+        "ER": ["EMPLOYER"],
+        "CpP": ["CITATIONS"],
+        "HI": ["H"],
+        "IRN": ["IRN", "INTERNATIONAL"],
+    }
+    for indicator_code, patterns in indicator_col_patterns.items():
+        matched_col = None
+        for col in df.columns:
+            col_upper = col.upper().strip()
+            # Skip rank columns
+            if "RANK" in col_upper:
+                continue
+            for pattern in patterns:
+                if col_upper == pattern:
+                    matched_col = col
+                    break
+            if matched_col:
+                break
+        if matched_col:
+            result[indicator_code] = pd.to_numeric(df[matched_col], errors="coerce")
         else:
             result[indicator_code] = float("nan")
+
     return result
+
+
+def _build_faculty_area_map(filepath: str, sheet_names: list) -> dict:
+    """Build a mapping from sheet name to faculty area using the Index sheet or FACULTY_AREAS constant."""
+    from src.constants import FACULTY_AREAS
+
+    faculty_area_map = {}
+    # Faculty area sheets map to themselves
+    for fa in FACULTY_AREAS:
+        for sn in sheet_names:
+            if sn.strip() == fa.strip():
+                faculty_area_map[sn] = fa
+
+    # Try to read Index sheet for subject-to-area mapping
+    try:
+        raw = pd.read_excel(filepath, sheet_name="Index", header=None)
+        # Index sheet has faculty areas in row 4, subjects below
+        # Find the row with faculty area headers
+        for idx, row in raw.iterrows():
+            vals = [str(v).strip() if pd.notna(v) else "" for v in row.values]
+            area_cols = {}
+            for col_idx, val in enumerate(vals):
+                if val in FACULTY_AREAS:
+                    area_cols[col_idx] = val
+            if area_cols:
+                # Read subjects below each faculty area column
+                for sub_idx in range(idx + 1, len(raw)):
+                    sub_row = raw.iloc[sub_idx]
+                    for col_idx, area in area_cols.items():
+                        if col_idx < len(sub_row) and pd.notna(sub_row.iloc[col_idx]):
+                            subject = str(sub_row.iloc[col_idx]).strip()
+                            if subject:
+                                # Match truncated sheet names
+                                for sn in sheet_names:
+                                    if subject.startswith(sn[:25]) or sn.startswith(subject[:25]):
+                                        faculty_area_map[sn] = area
+                                    elif subject.replace("&", "&").startswith(sn.replace("&", "&")[:25]):
+                                        faculty_area_map[sn] = area
+                break
+    except Exception:
+        pass
+
+    return faculty_area_map
 
 
 def load_qs_data(qs_dir: str = "data/qs") -> pd.DataFrame:
     all_frames = []
-    skip_sheets = {"Main"}
+    skip_sheets = {"Main", "Index", "methodology"}
     for filepath in Path(qs_dir).glob("*.xlsx"):
         years = re.findall(r"20\d{2}", filepath.stem)
         if not years:
@@ -70,11 +162,14 @@ def load_qs_data(qs_dir: str = "data/qs") -> pd.DataFrame:
         wb = openpyxl.load_workbook(str(filepath), read_only=True)
         sheet_names = wb.sheetnames
         wb.close()
+
+        faculty_area_map = _build_faculty_area_map(str(filepath), sheet_names)
+
         for sheet_name in sheet_names:
             if sheet_name in skip_sheets:
                 continue
             try:
-                df = parse_qs_subject_sheet(str(filepath), sheet_name, year)
+                df = parse_qs_subject_sheet(str(filepath), sheet_name, year, faculty_area_map)
                 if len(df) > 0:
                     all_frames.append(df)
             except Exception as e:
@@ -87,9 +182,7 @@ def load_qs_data(qs_dir: str = "data/qs") -> pd.DataFrame:
 def filter_target_universities(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty or "institution" not in df.columns:
         return df
-    mask = pd.Series(False, index=df.index)
-    for target in TARGET_UNIVERSITIES:
-        mask |= df["institution"].str.contains(target[:20], case=False, na=False)
+    mask = df["institution"].isin(TARGET_UNIVERSITIES)
     return df[mask].copy()
 
 
@@ -101,7 +194,7 @@ def get_available_subjects(df: pd.DataFrame, faculty_area: Optional[str] = None)
 
 
 def parse_scival_csv(filepath: str) -> dict:
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8-sig") as f:
         lines = f.readlines()
     university = None
     metric_type = None

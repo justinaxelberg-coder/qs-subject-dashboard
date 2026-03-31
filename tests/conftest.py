@@ -13,8 +13,8 @@ def sample_qs_subject_data():
         "faculty_area": ["Natural Sciences", "Natural Sciences", "Natural Sciences"],
         "institution": [
             "Universidade de São Paulo",
-            "Universidade Estadual de Campinas",
-            "Universidade Federal de São Carlos",
+            "Universidade Estadual de Campinas (Unicamp)",
+            "Universidade Federal de São Carlos (UFSCar)",
         ],
         "country": ["Brazil", "Brazil", "Brazil"],
         "rank": [85, 201, 401],

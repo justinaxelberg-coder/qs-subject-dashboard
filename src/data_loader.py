@@ -258,6 +258,14 @@ def parse_scival_csv(filepath: str) -> dict:
     return {"university": university, "metric_type": metric_type, "overall_score": overall_score, "data": df}
 
 
+# Map SciVal entity names to QS institution names (they differ slightly)
+_SCIVAL_TO_QS_NAME = {
+    "Universidade Estadual de Campinas": "Universidade Estadual de Campinas (Unicamp)",
+    "Universidade Estadual Paulista Júlio de Mesquita Filho": "UNESP",
+    "Universidade Federal de São Carlos": "Universidade Federal de São Carlos (UFSCar)",
+}
+
+
 def load_scival_data(scival_dir: str = "data/scival") -> dict:
     result = {}
     for filepath in Path(scival_dir).glob("*.csv"):
@@ -266,6 +274,8 @@ def load_scival_data(scival_dir: str = "data/scival") -> dict:
             uni = parsed["university"]
             metric = parsed["metric_type"]
             if uni and metric:
+                # Normalize to QS institution name
+                uni = _SCIVAL_TO_QS_NAME.get(uni, uni)
                 if uni not in result:
                     result[uni] = {}
                 result[uni][metric] = {"overall_score": parsed["overall_score"], "data": parsed["data"]}

@@ -1,0 +1,32 @@
+﻿Data set,"QS World University Rankings 2026 - International Research Network Index"
+Entity,"Universidade Federal de São Carlos"
+
+"Year range","2019 to 2023"
+Subject classification,"QS"
+Filtered by,"All subject areas"
+
+Types of publications included
+Gross,"All types"
+QS,"Article, review, conference paper, book, book chapter, article in press"
+
+Self-citations
+Gross,Included
+QS,Author-level excluded
+
+Data source,Scopus
+Date last updated,9 February 2023
+Date exported,31 March 2026
+
+International Research Network (IRN) Score,47.1
+
+"QS metrics","IRN Scholarly Output (QS)","Locations (QS)","Partners (QS)","Non-Scaled International Research Network (IRN) Index (QS)","International Research Network (IRN) Index (QS)"
+Arts & Humanities,15,4.0,6.0,2.23,19.72
+Engineering & Technology,1263,43.0,261.0,7.73,50.47
+Life Sciences & Medicine,1383,43.0,300.0,7.54,39.47
+Natural Sciences,1341,41.0,267.0,7.34,46.34
+Social Sciences & Management,386,28.0,104.0,6.03,39.01
+Total,3086,31.8,187.6,N/A,39.0
+
+"© 2026 Elsevier B.V. All rights reserved. SciVal, RELX Group and the RE symbol are trade marks of RELX Intellectual Properties SA, used under license."
+
+

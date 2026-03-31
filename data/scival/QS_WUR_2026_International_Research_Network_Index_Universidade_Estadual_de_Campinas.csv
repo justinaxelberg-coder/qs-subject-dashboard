@@ -1,0 +1,32 @@
+﻿Data set,"QS World University Rankings 2026 - International Research Network Index"
+Entity,"Universidade Estadual de Campinas"
+
+"Year range","2019 to 2023"
+Subject classification,"QS"
+Filtered by,"All subject areas"
+
+Types of publications included
+Gross,"All types"
+QS,"Article, review, conference paper, book, book chapter, article in press"
+
+Self-citations
+Gross,Included
+QS,Author-level excluded
+
+Data source,Scopus
+Date last updated,9 February 2023
+Date exported,31 March 2026
+
+International Research Network (IRN) Score,84.5
+
+"QS metrics","IRN Scholarly Output (QS)","Locations (QS)","Partners (QS)","Non-Scaled International Research Network (IRN) Index (QS)","International Research Network (IRN) Index (QS)"
+Arts & Humanities,75,13.0,21.0,4.27,41.49
+Engineering & Technology,3217,66.0,574.0,10.39,68.57
+Life Sciences & Medicine,4968,82.0,812.0,12.24,64.77
+Natural Sciences,3074,68.0,660.0,10.47,66.88
+Social Sciences & Management,929,41.0,252.0,7.41,48.43
+Total,8896,54.0,463.8,N/A,58.03
+
+"© 2026 Elsevier B.V. All rights reserved. SciVal, RELX Group and the RE symbol are trade marks of RELX Intellectual Properties SA, used under license."
+
+

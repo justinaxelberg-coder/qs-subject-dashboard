@@ -1,0 +1,32 @@
+﻿Data set,"QS World University Rankings 2026 - International Research Network Index"
+Entity,"Universidade Federal de São Paulo"
+
+"Year range","2019 to 2023"
+Subject classification,"QS"
+Filtered by,"All subject areas"
+
+Types of publications included
+Gross,"All types"
+QS,"Article, review, conference paper, book, book chapter, article in press"
+
+Self-citations
+Gross,Included
+QS,Author-level excluded
+
+Data source,Scopus
+Date last updated,9 February 2023
+Date exported,31 March 2026
+
+International Research Network (IRN) Score,49.5
+
+"QS metrics","IRN Scholarly Output (QS)","Locations (QS)","Partners (QS)","Non-Scaled International Research Network (IRN) Index (QS)","International Research Network (IRN) Index (QS)"
+Arts & Humanities,11,3.0,4.0,2.16,18.99
+Engineering & Technology,517,30.0,135.0,6.12,39.5
+Life Sciences & Medicine,4356,80.0,724.0,12.15,64.28
+Natural Sciences,566,32.0,171.0,6.22,39.04
+Social Sciences & Management,312,27.0,93.0,5.96,38.52
+Total,4974,34.4,225.4,N/A,40.07
+
+"© 2026 Elsevier B.V. All rights reserved. SciVal, RELX Group and the RE symbol are trade marks of RELX Intellectual Properties SA, used under license."
+
+

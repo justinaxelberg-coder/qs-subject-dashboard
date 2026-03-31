@@ -1,0 +1,33 @@
+﻿Data set,"QS World University Rankings 2026 - Citations per Faculty"
+Entity,"Universidade Estadual Paulista Júlio de Mesquita Filho"
+
+"Year range","2019 to 2023"
+Subject classification,"QS"
+Filtered by,"All subject areas"
+
+Types of publications included
+Gross,"All types"
+QS,"Article, review, conference paper, book, book chapter, article in press"
+
+Self-citations
+Gross,Included
+QS,Author-level excluded
+
+Data source,Scopus
+Date last updated,9 February 2023
+Date exported,31 March 2026
+
+Citation per Faculty Score,22.2
+
+"QS metrics","Scholarly Output (QS)","Excluded Scholarly Output","Total Scholarly Output","Citations (QS)","Excluded self-citations","Total Citations","Normalized Total Citation Count (QS)","Weighting Factor (QS)","Weighting Adjustment Ratio (QS)"
+Arts & Humanities,708,37,745,948,303,1251,3532,14.59,0.26
+Engineering & Technology,8643,222,8865,73907,25641,99548,66100,0.63,1.43
+Life Sciences & Medicine,19480,886,20366,139200,51626,190826,121653,0.61,1.43
+Natural Sciences,8359,611,8970,67819,40847,108666,85182,0.88,1.43
+Social Sciences & Management,4013,96,4109,28551,7961,36512,23261,1.8,0.45
+Total,41203,1852,43055,310425,126378,436803,205546,N/A,N/A
+Deduplicated Count,29939,1546,31485,212898,92706,305604,N/A,N/A,N/A
+
+"© 2026 Elsevier B.V. All rights reserved. SciVal, RELX Group and the RE symbol are trade marks of RELX Intellectual Properties SA, used under license."
+
+

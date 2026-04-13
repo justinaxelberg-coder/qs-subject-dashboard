@@ -122,4 +122,3 @@ with tab4:
 with tab5:
     from tabs.tab5_benchmarking import render
     render(qs_data, scival_data, selected_universities, selected_faculty, selected_subject, selected_year)
-

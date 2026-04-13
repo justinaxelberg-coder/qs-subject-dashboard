@@ -14,8 +14,8 @@ from src.constants import (
 )
 
 # Layout: which groups appear in the top regional section vs. international expander
-_REGIONAL_GROUPS = ["Brazilian Leaders (non-SP)", "Latin American Leaders", "Ibero-American"]
-_INTERNATIONAL_GROUPS = ["Chinese C9", "Russell Group", "BRICS Peers", "Rising East Asian"]
+_REGIONAL_GROUPS = ["Líderes Brasileiras (excl. SP)", "Líderes Latino-Americanas", "Ibero-Americanas"]
+_INTERNATIONAL_GROUPS = ["C9 Chinesas", "Russell Group", "Pares BRICS", "Leste Asiático em Ascensão"]
 
 
 def _display_name(name: str) -> str:
@@ -183,11 +183,11 @@ def _render_group(
     n_sp_ranked = len(ranked[ranked["_full_name"].isin(selected_universities)])
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Group institutions ranked", f"{n_group_ranked} / {len(group_insts)}")
-    col2.metric("SP universities ranked", f"{n_sp_ranked} / {len(selected_universities)}")
+    col1.metric("Instituições do grupo ranqueadas", f"{n_group_ranked} / {len(group_insts)}")
+    col2.metric("Universidades SP ranqueadas", f"{n_sp_ranked} / {len(selected_universities)}")
     if not ranked.empty:
         top = ranked.iloc[0]
-        col3.metric("Top scorer", f"{top['Institution']} ({top['Score']})")
+        col3.metric("Maior escore", f"{top['Institution']} ({top['Score']})")
 
     _render_group_table(df)
 
@@ -196,10 +196,10 @@ def _render_group(
     has_data = ranked[indicators].apply(lambda c: c != "—").any(axis=1)
     radar_df = ranked[has_data]
     if len(radar_df) >= 2:
-        st.markdown("##### Radar Comparison")
+        st.markdown("##### Comparação em Radar")
         all_names = radar_df["Institution"].tolist()
         selected_radar = st.multiselect(
-            "Institutions to compare",
+            "Instituições a comparar",
             options=all_names,
             default=all_names,
             key=f"radar_{group_name}_{selected_subject}_{selected_year}",
@@ -211,12 +211,12 @@ def _render_group(
             )
             st.plotly_chart(fig, use_container_width=True)
         elif len(selected_radar) == 1:
-            st.caption("Select at least 2 institutions to display the radar chart.")
+            st.caption("Selecione ao menos 2 instituições para exibir o gráfico radar.")
 
     if not unranked.empty:
-        with st.expander(f"{len(unranked)} institutions not ranked in this subject"):
+        with st.expander(f"{len(unranked)} instituições não ranqueadas nesta disciplina"):
             st.dataframe(
-                unranked[["Institution"]].rename(columns={"Institution": "Institution (not ranked)"}),
+                unranked[["Institution"]].rename(columns={"Institution": "Instituição (não ranqueada)"}),
                 use_container_width=True,
                 hide_index=True,
             )
@@ -257,12 +257,12 @@ def _render_scival_section(
             rows.append(row)
 
     if rows:
-        st.markdown("#### SciVal Bibliometrics — SP Universities")
-        st.caption(f"Faculty area: {selected_faculty} | Source: QS SciVal exports")
+        st.markdown("#### Bibliometria SciVal — Universidades SP")
+        st.caption(f"Grande área: {selected_faculty} | Fonte: exportações SciVal QS")
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
         st.caption(
-            "SciVal data for peer groups requires institutional exports or a SciVal "
-            "Analytics API subscription. Add CSVs to `data/scival/` to extend coverage."
+            "Dados SciVal para os grupos de pares requerem exportações institucionais ou "
+            "assinatura da API SciVal Analytics. Adicione CSVs em `data/scival/` para ampliar a cobertura."
         )
 
 
@@ -274,15 +274,15 @@ def render(
     selected_subject: str,
     selected_year: int,
 ) -> None:
-    st.subheader("Peer Benchmarking")
+    st.subheader("Benchmarking com Pares")
 
     if qs_data.empty:
-        st.warning("No QS data loaded.")
+        st.warning("Nenhum dado QS carregado.")
         return
 
     st.caption(
-        f"Subject: **{selected_subject}** | Year: **{selected_year}** | "
-        "SP universities highlighted in blue."
+        f"Disciplina: **{selected_subject}** | Ano: **{selected_year}** | "
+        "Universidades SP destacadas em azul."
     )
 
     # ── Regional peers (top section) ─────────────────────────────────────────
@@ -300,7 +300,7 @@ def render(
 
     # ── International benchmarks (collapsible) ───────────────────────────────
     st.divider()
-    with st.expander("🌍 International Benchmarks", expanded=False):
+    with st.expander("🌍 Benchmarks Internacionais", expanded=False):
         intl_tabs = st.tabs(_INTERNATIONAL_GROUPS)
         for tab_widget, group_name in zip(intl_tabs, _INTERNATIONAL_GROUPS):
             with tab_widget:

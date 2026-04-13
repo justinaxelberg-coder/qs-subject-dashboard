@@ -30,13 +30,13 @@ UNIVERSITY_COLORS = {
     "UFABC": "#17becf",     # teal
 }
 
-# Indicator codes and display names
+# Indicator codes and display names (Brazilian Portuguese)
 INDICATOR_NAMES = {
-    "AR": "Academic Reputation",
-    "ER": "Employer Reputation",
-    "CpP": "Citations per Paper",
-    "HI": "H-Index",
-    "IRN": "International Research Network",
+    "AR": "Reputação Acadêmica",
+    "ER": "Reputação com Empregadores",
+    "CpP": "Citações por Artigo",
+    "HI": "Índice H",
+    "IRN": "Rede Internacional de Pesquisa",
 }
 
 # Indicator colors (matching QS SVG palette)
@@ -161,13 +161,13 @@ PEER_GROUP_EAST_ASIAN = [
 ]
 
 PEER_GROUPS = {
-    "Chinese C9": PEER_GROUP_CHINESE_C9,
-    "Latin American Leaders": PEER_GROUP_LATIN_AMERICA,
-    "Brazilian Leaders (non-SP)": PEER_GROUP_BRAZIL_LEADERS,
+    "C9 Chinesas": PEER_GROUP_CHINESE_C9,
+    "Líderes Latino-Americanas": PEER_GROUP_LATIN_AMERICA,
+    "Líderes Brasileiras (excl. SP)": PEER_GROUP_BRAZIL_LEADERS,
     "Russell Group": PEER_GROUP_RUSSELL,
-    "Ibero-American": PEER_GROUP_IBERO,
-    "BRICS Peers": PEER_GROUP_BRICS,
-    "Rising East Asian": PEER_GROUP_EAST_ASIAN,
+    "Ibero-Americanas": PEER_GROUP_IBERO,
+    "Pares BRICS": PEER_GROUP_BRICS,
+    "Leste Asiático em Ascensão": PEER_GROUP_EAST_ASIAN,
 }
 
 # Faculty areas

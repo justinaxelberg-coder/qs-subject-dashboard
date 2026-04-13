@@ -15,8 +15,8 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("QS Subject Rankings Dashboard")
-st.caption("Comparing São Paulo public universities across areas of knowledge")
+st.title("Dashboard QS Rankings por Disciplina")
+st.caption("Comparando universidades públicas paulistas por área do conhecimento")
 
 
 # --- Data Loading (cached) ---
@@ -49,10 +49,10 @@ if qs_data.empty:
 # Filter to target universities for subject/year discovery
 target_data = filter_target_universities(qs_data)
 
-# --- Sidebar ---
-st.sidebar.header("Filters")
+# --- Barra lateral ---
+st.sidebar.header("Filtros")
 
-# University selector
+# Seletor de universidades
 short_to_full = {v: k for k, v in UNIVERSITY_SHORT_NAMES.items()}
 available_short = [
     UNIVERSITY_SHORT_NAMES.get(uni, uni)
@@ -60,30 +60,29 @@ available_short = [
     if uni in UNIVERSITY_SHORT_NAMES
 ]
 selected_short = st.sidebar.multiselect(
-    "Universities",
+    "Universidades",
     options=sorted(available_short),
     default=sorted(available_short),
 )
 selected_universities = [short_to_full.get(s, s) for s in selected_short]
 
-# Faculty area selector
-selected_faculty = st.sidebar.selectbox("Faculty Area", FACULTY_AREAS)
+# Seletor de grande área
+selected_faculty = st.sidebar.selectbox("Grande Área", FACULTY_AREAS)
 
-# Subject selector (filtered by faculty area and target universities)
-# Put broad field at the top as default, then individual subjects
+# Seletor de disciplina (filtrado por grande área e universidades alvo)
 available_subjects = get_available_subjects(target_data, faculty_area=selected_faculty)
-broad_label = f"📊 {selected_faculty} (Broad Field)"
+broad_label = f"📊 {selected_faculty} (Campo Amplo)"
 individual_subjects = [s for s in available_subjects if s != selected_faculty]
-subject_options = [broad_label] + sorted(individual_subjects) if available_subjects else ["(no subjects available)"]
-selected_subject_raw = st.sidebar.selectbox("Subject", options=subject_options)
-# Map broad label back to actual sheet name
+subject_options = [broad_label] + sorted(individual_subjects) if available_subjects else ["(nenhuma disciplina disponível)"]
+selected_subject_raw = st.sidebar.selectbox("Disciplina", options=subject_options)
+# Mapeia o rótulo amplo de volta ao nome da planilha
 selected_subject = selected_faculty if selected_subject_raw == broad_label else selected_subject_raw
 is_broad_field = (selected_subject == selected_faculty)
 
-# Year selector
+# Seletor de ano
 available_years = sorted(target_data["year"].unique(), reverse=True)
 default_year = 2026 if 2026 in available_years else available_years[0] if available_years else 2026
-selected_year = st.sidebar.selectbox("Year", options=available_years, index=0)
+selected_year = st.sidebar.selectbox("Ano", options=available_years, index=0)
 
 # Store selections in session state for tab access
 st.session_state["selected_universities"] = selected_universities
@@ -93,11 +92,11 @@ st.session_state["selected_year"] = selected_year
 
 # --- Tabs ---
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Score Decomposition",
-    "🎯 Gap Analysis",
-    "🔬 Bibliometric Deep Dive",
-    "🎛️ Simulator",
-    "🏛️ Peer Benchmarking",
+    "📊 Decomposição do Escore",
+    "🎯 Análise de Lacunas",
+    "🔬 Análise Bibliométrica",
+    "🎛️ Simulador",
+    "🏛️ Benchmarking com Pares",
 ])
 
 with tab1:

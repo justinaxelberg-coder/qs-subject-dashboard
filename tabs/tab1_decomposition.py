@@ -1,5 +1,5 @@
 # tabs/tab1_decomposition.py
-"""Tab 1: Score Decomposition (Tier 1 — Subject level)."""
+"""Aba 1: Decomposição do Escore (Nível 1 — Disciplina)."""
 
 import streamlit as st
 import pandas as pd
@@ -17,16 +17,14 @@ from src.data_loader import filter_target_universities
 
 
 def _format_rank(rank_val):
-    """Format rank for display — handles both numeric and band strings."""
+    """Formata posição para exibição — trata números e faixas como '251-300'."""
     if rank_val is None or (isinstance(rank_val, float) and pd.isna(rank_val)):
         return "—"
     s = str(rank_val).strip()
     if s in ("nan", "None", ""):
         return "—"
-    # Already a band like "251-300"
     if "-" in s:
         return s
-    # Plain number
     try:
         return f"#{int(float(s))}"
     except (ValueError, TypeError):
@@ -34,11 +32,10 @@ def _format_rank(rank_val):
 
 
 def render(qs_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
-    if selected_subject == "(no subjects available)":
-        st.warning("No subjects available for this faculty area.")
+    if selected_subject == "(nenhuma disciplina disponível)":
+        st.warning("Nenhuma disciplina disponível para esta grande área.")
         return
 
-    # Filter data for selected subject, year, and universities
     mask = (
         (qs_data["subject"] == selected_subject)
         & (qs_data["year"] == selected_year)
@@ -47,17 +44,15 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
     df = qs_data[mask].copy()
 
     if df.empty:
-        st.warning(f"No data for {selected_subject} ({selected_year}) for selected universities.")
+        st.warning(f"Sem dados para {selected_subject} ({selected_year}) para as universidades selecionadas.")
         return
 
-    # Get weights for this subject
     try:
         subject_weights = get_subject_weights(weights, selected_subject, faculty_area=selected_faculty)
     except KeyError:
-        st.error(f"No weights defined for {selected_subject}. Check weights.json.")
+        st.error(f"Pesos não definidos para {selected_subject}. Verifique weights.json.")
         return
 
-    # Calculate weighted contributions per university and collect ranks
     contributions = {}
     uni_ranks = {}
     uni_scores = {}
@@ -65,13 +60,12 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         uni_full = row["institution"]
         uni_short = UNIVERSITY_SHORT_NAMES.get(uni_full, uni_full)
         scores = {ind: row.get(ind, 0) for ind in ["AR", "ER", "CpP", "HI", "IRN"]}
-        # Replace NaN with 0
         scores = {k: (v if pd.notna(v) else 0) for k, v in scores.items()}
         contributions[uni_short] = calculate_weighted_contributions(scores, subject_weights)
         uni_ranks[uni_short] = row.get("rank_display", row.get("rank"))
         uni_scores[uni_short] = row.get("overall_score")
 
-    # Ranking position summary
+    # Resumo de posição no ranking
     rank_cols = st.columns(len(contributions))
     for i, uni in enumerate(sorted(contributions.keys())):
         with rank_cols[i]:
@@ -79,12 +73,12 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
             score_val = uni_scores.get(uni)
             rank_display = _format_rank(rank_val)
             score_display = f"{score_val:.1f}" if pd.notna(score_val) else "—"
-            st.metric(uni, rank_display, help=f"Overall score: {score_display}")
+            st.metric(uni, rank_display, help=f"Escore geral: {score_display}")
 
-    # Headline insight
+    # Destaque de insight
     st.markdown(f"**{decomposition_insight(contributions, selected_subject)}**")
 
-    # Stacked horizontal bar chart
+    # Gráfico de barras horizontais empilhadas
     fig = go.Figure()
     universities = sorted(contributions.keys())
     indicators_in_use = [ind for ind in ["AR", "ER", "CpP", "HI", "IRN"] if ind in subject_weights]
@@ -100,40 +94,40 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
             hovertemplate=(
                 "<b>%{y}</b><br>"
                 f"{INDICATOR_NAMES.get(indicator, indicator)}: "
-                "%{x:.1f} weighted pts<extra></extra>"
+                "%{x:.1f} pts ponderados<extra></extra>"
             ),
         ))
 
     fig.update_layout(
         barmode="stack",
-        title=f"Score Decomposition — {selected_subject} ({selected_year})",
-        xaxis_title="Weighted Score Contribution",
+        title=f"Decomposição do Escore — {selected_subject} ({selected_year})",
+        xaxis_title="Contribuição Ponderada ao Escore",
         yaxis_title="",
-        legend_title="Indicator",
+        legend_title="Indicador",
         height=max(300, len(universities) * 60 + 100),
         margin=dict(l=10, r=10, t=50, b=50),
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Weight formula display
+    # Fórmula de pesos
     weight_parts = [
         f"{INDICATOR_NAMES.get(k, k)} {v}%"
         for k, v in subject_weights.items()
     ]
-    st.caption(f"**{selected_subject} weights:** {' | '.join(weight_parts)}")
+    st.caption(f"**Pesos — {selected_subject}:** {' | '.join(weight_parts)}")
 
-    # Collapsible data table
-    with st.expander("View raw data"):
+    # Tabela de dados brutos (recolhível)
+    with st.expander("Ver dados brutos"):
         table_data = []
         for uni in universities:
             rank_val = uni_ranks.get(uni)
             row = {
-                "University": uni,
-                "Rank": _format_rank(rank_val),
-                "Score": f"{uni_scores.get(uni, 0):.1f}" if pd.notna(uni_scores.get(uni)) else "—",
+                "Universidade": uni,
+                "Posição": _format_rank(rank_val),
+                "Escore": f"{uni_scores.get(uni, 0):.1f}" if pd.notna(uni_scores.get(uni)) else "—",
             }
             for ind in indicators_in_use:
                 row[INDICATOR_NAMES.get(ind, ind)] = f"{contributions[uni].get(ind, 0):.1f}"
-            row["Total (weighted)"] = f"{sum(contributions[uni].values()):.1f}"
+            row["Total (ponderado)"] = f"{sum(contributions[uni].values()):.1f}"
             table_data.append(row)
         st.dataframe(pd.DataFrame(table_data), use_container_width=True, hide_index=True)

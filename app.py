@@ -15,8 +15,12 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("Dashboard QS Rankings por Disciplina")
-st.caption("Comparando universidades públicas paulistas por área do conhecimento")
+col_logo, col_title = st.columns([1, 3])
+with col_logo:
+    st.image("assets/metricas_logo.png", width=220)
+with col_title:
+    st.title("QS Subject Rankings — Dashboard")
+    st.caption("Comparando universidades públicas paulistas por área do conhecimento")
 
 
 # --- Data Loading (cached) ---

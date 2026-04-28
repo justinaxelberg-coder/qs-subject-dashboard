@@ -4,7 +4,7 @@ from src.constants import INDICATOR_NAMES
 
 
 def decomposition_insight(contributions: dict, subject: str) -> str:
-    """Gera um insight de destaque para a aba Decomposição do Escore."""
+    """Gera um insight de composição para a aba Decomposição do Escore."""
     if not contributions:
         return f"Sem dados disponíveis para {subject}."
 
@@ -13,36 +13,32 @@ def decomposition_insight(contributions: dict, subject: str) -> str:
     top_total = totals[top_uni]
     top_contribs = contributions[top_uni]
 
-    strongest = max(top_contribs, key=top_contribs.get)
-    weakest = min(top_contribs, key=top_contribs.get) if len(top_contribs) > 1 else strongest
-
-    strongest_name = INDICATOR_NAMES.get(strongest, strongest)
-    weakest_name = INDICATOR_NAMES.get(weakest, weakest)
+    reputation_total = top_contribs.get("AR", 0) + top_contribs.get("ER", 0)
+    reputation_pct = round(reputation_total / top_total * 100) if top_total > 0 else 0
 
     return (
-        f"Em {subject}, o escore ponderado total de {top_uni} ({top_total:.1f}) "
-        f"é impulsionado principalmente por {strongest_name} ({top_contribs[strongest]:.1f} pts). "
-        f"O contribuinte ponderado mais fraco é {weakest_name} "
-        f"({top_contribs[weakest]:.1f} pts)."
+        f"Em {subject}, {reputation_pct}% do escore ponderado de {top_uni} "
+        f"({top_total:.1f} pts) é determinado por indicadores de reputação "
+        f"institucional (AR + ER)."
     )
 
 
 def gap_analysis_insight(
     focus_uni: str, subject: str, opportunities: list[dict]
 ) -> str:
-    """Gera um insight de destaque para a aba Análise de Lacunas."""
+    """Gera um insight de perfil para a aba Perfil dos Indicadores."""
     if not opportunities:
         return (
-            f"{focus_uni} lidera ou empata com as pares em todos os indicadores "
-            f"em {subject}. Nenhuma oportunidade de melhoria identificada."
+            f"{focus_uni} está acima ou igual à média das pares "
+            f"em todos os indicadores em {subject}."
         )
 
     top = opportunities[0]
     indicator_name = INDICATOR_NAMES.get(top["indicator"], top["indicator"])
     return (
-        f"A maior oportunidade de {focus_uni} em {subject} é "
-        f"{indicator_name}, valendo até {top['gap_points']:.1f} "
-        f"pontos ponderados em relação às pares paulistas."
+        f"Em {subject}, {focus_uni} apresenta a maior diferença de perfil "
+        f"em {indicator_name}: {top['gap_points']:.1f} pts ponderados "
+        f"abaixo da média das pares paulistas."
     )
 
 
@@ -61,8 +57,8 @@ def benchmarking_insight(
 
     if not indicator_counts:
         return (
-            f"{focus_uni} lidera todas as pares em todos os indicadores "
-            f"em {faculty_area}."
+            f"{focus_uni} está acima ou igual a todas as pares "
+            f"em todos os indicadores em {faculty_area}."
         )
 
     most_common = max(indicator_counts, key=indicator_counts.get)
@@ -71,7 +67,7 @@ def benchmarking_insight(
     indicator_name = INDICATOR_NAMES.get(most_common, most_common)
 
     return (
-        f"{count} de {total_peers} pares superam {focus_uni} em "
-        f"{indicator_name} na área de {faculty_area}, sugerindo este como "
-        f"um foco prioritário de melhoria."
+        f"{count} de {total_peers} grupos de pares apresentam diferença "
+        f"positiva em relação a {focus_uni} em {indicator_name} "
+        f"na área de {faculty_area}."
     )

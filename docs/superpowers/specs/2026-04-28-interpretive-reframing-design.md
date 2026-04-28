@@ -48,7 +48,10 @@ Numbered list of 5 principles, each with a critical note:
 5. **O que o ranking não mede é tão importante quanto o que mede** — Impacto social, extensão, ensino de graduação, relevância regional, e pesquisa em língua portuguesa não aparecem no escore.
 
 ### Block 4 — O Manifesto de Leiden
-A dedicated block summarising the [Leiden Manifesto for Research Metrics](https://doi.org/10.1038/520429a) (Hicks, Wouters, Waltman, De Rijcke & Rafols, *Nature*, 2015). Render all 10 principles from `leiden_principles()` as a numbered list. Principles with `highlighted=True` are rendered in a `st.info()` callout box to visually distinguish them as directly applicable to ranking interpretation. Non-highlighted principles render as plain list items in a `st.expander("Todos os 10 princípios")`.
+A dedicated block summarising the [Leiden Manifesto for Research Metrics](https://doi.org/10.1038/520429a) (Hicks, Wouters, Waltman, De Rijcke & Rafols, *Nature*, 2015). Render all 10 principles from `leiden_principles()` in two groups:
+
+1. **Before the expander** — the four highlighted principles (`highlighted=True`) rendered directly in the block as `st.info()` callouts, each showing the principle number, title, and description.
+2. **Inside an expander** — the remaining six non-highlighted principles rendered as a numbered plain-text list inside `st.expander("Ver os demais princípios")`. The expander title is "Ver os demais princípios" (not "Todos os 10" — the highlighted ones are already visible above).
 
 The four highlighted principles and their framing:
 
@@ -146,7 +149,8 @@ A shared helper function `indicator_popover(indicator_code)` in `src/interpretiv
 - Intro text: "Ajuste os valores dos indicadores para entender como o modelo de ponderação do QS funciona na prática. Este não é um plano de ação — é uma lente metodológica."
 - Metric labels: `st.metric("Escore Atual", ...)` stays as-is; `st.metric("Escore Simulado", ...)` → `st.metric("Escore Hipotético", ...)`. Internal variable names (`simulated_total`, `simulate_score_change`) and `src/simulator.py` are **not** renamed.
 - Delta table column "Impacto Ponderado" → rename to "Peso no escore" (same rename as Tab 2)
-- Rank metric: `st.metric("Posição Estimada", estimated_rank_str)` → `st.metric("Posição equivalente", estimated_rank_str)` with a `st.caption("posição estimada assumindo que as demais instituições permanecem constantes")` rendered immediately below it (replacing the existing bottom-of-tab note about rank estimation)
+- Rank metric: `st.metric("Posição Estimada", estimated_rank_str)` → `st.metric("Posição equivalente", estimated_rank_str)` with a `st.caption("posição estimada assumindo que as demais instituições permanecem constantes")` rendered **inside the same `with col4:` block**, immediately after the `st.metric` call.
+- The existing bottom-of-tab `st.caption` (lines 266–271 in current source) covers three topics: (a) rank estimation caveat, (b) bibliometric approximation caveat, (c) AR/ER survey difficulty note. Sentence (a) moves to the `col4` block as above; sentences (b) and (c) are preserved as a single `st.caption(...)` below the delta table, retaining their informational content.
 
 ### Tab 5 — Contexto Internacional *(renamed from "Benchmarking com Pares")*
 - Tab name: "🏛️ Contexto Internacional"

@@ -29,7 +29,7 @@ def test_gap_analysis_insight():
         {"indicator": "HI", "gap_points": 0.5},
     ]
     result = gap_analysis_insight("USP", "Chemistry", opportunities)
-    assert "International Research Network" in result or "IRN" in result
+    assert "Rede Internacional de Pesquisa" in result
     assert "USP" in result
     assert "3.2" in result
 
@@ -50,4 +50,4 @@ def test_benchmarking_insight():
     }
     result = benchmarking_insight("USP", "Life Sciences & Medicine", peer_deltas)
     assert isinstance(result, str)
-    assert "International Research Network" in result or "IRN" in result  # All 3 peers outperform on IRN
+    assert "Rede Internacional de Pesquisa" in result  # All 3 peers outperform on IRN

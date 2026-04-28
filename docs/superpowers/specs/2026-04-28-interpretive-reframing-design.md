@@ -17,7 +17,7 @@ The redesign does **not** remove analytical depth. It reframes the narrative voi
 
 ## 2. Structural Change: New "Como Interpretar" Tab
 
-A new first tab — **"📖 Como Interpretar"** — is added before all existing tabs. It serves as the interpretive frame that users encounter before touching any data. It is structured as a readable, scrollable briefing in four blocks:
+A new first tab — **"📖 Como Interpretar"** — is added before all existing tabs. It serves as the interpretive frame that users encounter before touching any data. It is structured as a readable, scrollable briefing in five blocks:
 
 ### Block 1 — O que o QS Subject Rankings mede
 Plain-language summary:
@@ -48,14 +48,16 @@ Numbered list of 5 principles, each with a critical note:
 5. **O que o ranking não mede é tão importante quanto o que mede** — Impacto social, extensão, ensino de graduação, relevância regional, e pesquisa em língua portuguesa não aparecem no escore.
 
 ### Block 4 — O Manifesto de Leiden
-A dedicated block summarising the [Leiden Manifesto for Research Metrics](https://doi.org/10.1038/520429a) (Hicks, Wouters, Waltman, De Rijcke & Rafols, *Nature*, 2015). Brief summary of all 10 principles, with the following called out as directly applicable to ranking interpretation:
+A dedicated block summarising the [Leiden Manifesto for Research Metrics](https://doi.org/10.1038/520429a) (Hicks, Wouters, Waltman, De Rijcke & Rafols, *Nature*, 2015). Render all 10 principles from `leiden_principles()` as a numbered list. Principles with `highlighted=True` are rendered in a `st.info()` callout box to visually distinguish them as directly applicable to ranking interpretation. Non-highlighted principles render as plain list items in a `st.expander("Todos os 10 princípios")`.
+
+The four highlighted principles and their framing:
 
 - **Princípio 1:** Avaliação quantitativa deve apoiar — não substituir — o julgamento qualitativo de especialistas
 - **Princípio 6:** Considere a variação por campo nas práticas de publicação e citação
 - **Princípio 8:** Evite concretude deslocada e falsa precisão (ranks e escores transmitem uma precisão que os dados não sustentam)
 - **Princípio 9:** Reconheça os efeitos sistêmicos dos indicadores no comportamento institucional
 
-Link to full manifesto: https://doi.org/10.1038/520429a
+Link to full manifesto rendered as `st.link_button`: https://doi.org/10.1038/520429a
 
 ### Block 5 — Leituras recomendadas
 `st.link_button` entries:
@@ -108,9 +110,9 @@ A shared helper function `indicator_popover(indicator_code)` in `src/interpretiv
 - Normalização por campo é parcial; sub-áreas dentro de uma grande área podem ter padrões muito distintos.
 
 **Índice H (HI)**
-- *O que mede:* O maior número H tal que H publicações tenham sido citadas ao menos H vezes — uma medida de impacto cumulativo.
+- *O que mede:* O maior número H tal que H publicações tenham sido citadas ao menos H vezes — uma medida de impacto cumulativo. O QS utiliza uma janela temporal limitada (não o H-index acumulado completo), mas a métrica permanece estruturalmente favorável a volumes maiores de publicação.
 - Cumulativo por natureza: favorece instituições maiores e mais antigas. Crescimento é necessariamente lento independentemente do desempenho atual.
-- Não distingue entre publicações recentes e antigas.
+- Não distingue entre publicações recentes e antigas dentro da janela avaliada.
 
 **Rede Internacional de Pesquisa (IRN)**
 - *O que mede:* Volume e diversidade das colaborações internacionais de pesquisa da instituição.
@@ -123,25 +125,28 @@ A shared helper function `indicator_popover(indicator_code)` in `src/interpretiv
 
 ### Tab 1 — Decomposição do Escore
 - Subtitle: "Entenda como o escore é construído a partir dos cinco indicadores"
-- Insight string changes from "X's score is driven by Y" → "X% do escore de [universidade] depende de indicadores de reputação institucional"
-- Chart title: "Composição do Escore" (not "Decomposição" which implies diagnosis)
+- Insight string (`decomposition_insight()` in `src/insights.py`): reframe from "é impulsionado principalmente por… O contribuinte ponderado mais fraco é…" → neutral description of composition, e.g. "X% do escore de [universidade] em [subject] é determinado por indicadores de reputação institucional (AR + ER)."
+- Chart `update_layout` title: rename from "Decomposição do Escore — …" → "Composição do Escore — …" (not "Decomposição" which implies diagnosis)
 
 ### Tab 2 — Perfil dos Indicadores *(renamed from "Análise de Lacunas")*
 - Tab name: "🎯 Perfil dos Indicadores"
 - Subheader: "Compare o perfil de indicadores entre as universidades paulistas"
 - Peer average label: "Média das pares SP" stays, but context caption changes to "Diferenças de perfil refletem escolhas institucionais, contextos e históricos distintos — não necessariamente lacunas a corrigir."
-- Opportunity table renamed: "Diferenças de perfil" (not "oportunidades de melhoria")
-- Column headers: "Diferença" (not "Lacuna"), remove "Impacto Ponderado" or rename to "Peso no escore"
+- Radar chart `update_layout` title: rename "Análise de Lacunas — …" → "Perfil dos Indicadores — …"
+- Section header above the profile table: add `st.markdown("#### Diferenças de perfil")` (this replaces any existing "oportunidades de melhoria" heading)
+- Dataframe column renames: "Lacuna" → "Diferença", "Impacto Ponderado" → "Peso no escore"
 
 ### Tab 3 — Análise Bibliométrica
 - Minimal change — already descriptive. Add ℹ️ popovers to metric column headers.
 
 ### Tab 4 — Explorar os Pesos *(renamed from "Simulador")*
 - Tab name: "🎛️ Explorar os Pesos"
-- Subheader: "Explore como os pesos de cada indicador determinam o escore final"
+- Subheader: rename "Simulador de Escore — {subject}" → "Explorar os Pesos — {subject}"
+- Subheader below that: "Explore como os pesos de cada indicador determinam o escore final"
 - Intro text: "Ajuste os valores dos indicadores para entender como o modelo de ponderação do QS funciona na prática. Este não é um plano de ação — é uma lente metodológica."
-- Result metrics: "Escore Atual" / "Escore Hipotético" (not "Simulado")
-- Rank output: "Posição equivalente" with caption "posição estimada assumindo que as demais instituições permanecem constantes"
+- Metric labels: `st.metric("Escore Atual", ...)` stays as-is; `st.metric("Escore Simulado", ...)` → `st.metric("Escore Hipotético", ...)`. Internal variable names (`simulated_total`, `simulate_score_change`) and `src/simulator.py` are **not** renamed.
+- Delta table column "Impacto Ponderado" → rename to "Peso no escore" (same rename as Tab 2)
+- Rank metric: `st.metric("Posição Estimada", estimated_rank_str)` → `st.metric("Posição equivalente", estimated_rank_str)` with a `st.caption("posição estimada assumindo que as demais instituições permanecem constantes")` rendered immediately below it (replacing the existing bottom-of-tab note about rank estimation)
 
 ### Tab 5 — Contexto Internacional *(renamed from "Benchmarking com Pares")*
 - Tab name: "🏛️ Contexto Internacional"
@@ -152,11 +157,31 @@ A shared helper function `indicator_popover(indicator_code)` in `src/interpretiv
 ## 5. New Source File: `src/interpretive.py`
 
 New module containing:
-- `indicator_popover(code)` — returns popover annotation content for each indicator code
-- `leiden_principles()` — returns the 10 Leiden principles as structured data for rendering
-- `recommended_readings()` — returns list of reading dicts (title, authors, year, doi, url)
+- `indicator_popover(code)` — renders a `st.popover("ℹ️")` block for the given indicator. If `code` is not one of the five known indicators (`AR`, `ER`, `CpP`, `HI`, `IRN`), returns immediately without rendering (no exception).
+- `indicator_help_text(code) -> str` — returns the same annotation content as a plain string (no Streamlit calls). Used for `help=` parameters on `st.slider()` and `column_config`. Returns `""` for unknown codes.
+- `leiden_principles() -> list[dict]` — returns the 10 Leiden principles as a list of dicts with keys: `number` (int 1–10), `title` (str), `description` (str), `highlighted` (bool — True for principles 1, 6, 8, 9 which are called out in Block 4).
+- `recommended_readings() -> list[dict]` — returns list of reading dicts with keys: `title` (str), `authors` (str), `year` (int), `url` (str | None), `doi` (str | None). Both `url` and `doi` are optional (None when absent). The renderer renders a `st.link_button` only when `url` is not None; skips the DOI display when `doi` is None. Entries with no URL receive plain text citation only.
 
 This isolates all interpretive content from rendering logic, making it easy to update annotations without touching tab files.
+
+### Rendering contract for `indicator_popover(code)`
+
+The function **renders the popover widget itself** using `st.popover()` as a context manager — it does not return a string. Call sites simply call `indicator_popover(code)` wherever the ℹ️ icon should appear. If `code` is unknown the function returns immediately without rendering anything, so call sites never need to guard against empty output.
+
+`st.popover()` is a block-level element in Streamlit; it renders as a standalone "ℹ️" button on its own line, not inline within a label string. This is acceptable and consistent with Streamlit's layout model.
+
+**Exception — sliders:** `st.slider()` accepts a `help=` parameter that renders a native inline tooltip. For slider labels in Tab 4, use `help=` instead of `indicator_popover()`. The content to pass is returned by `indicator_help_text(code) -> str`, a second function in `src/interpretive.py` that returns the same annotation content as a plain string (no Streamlit calls). Call sites in Tab 4: `st.slider(..., help=indicator_help_text(ind))`.
+
+**Exception — dataframe columns:** `st.dataframe()` column headers accept `help=` via `st.column_config`. Where indicator columns appear in a dataframe (Tab 2, Tab 5), use `column_config` with `help=indicator_help_text(code)`.
+
+Example for running-text / section label contexts:
+```python
+st.markdown(f"**{label}**")
+indicator_popover("AR")   # renders block-level popover button below label
+```
+
+### Dependency note
+`st.popover()` requires Streamlit ≥ 1.31.0. `st.link_button()` requires Streamlit ≥ 1.26.0. The `requirements.txt` must pin `streamlit>=1.31.0` (currently `>=1.30.0` — needs updating).
 
 ---
 
@@ -164,14 +189,19 @@ This isolates all interpretive content from rendering logic, making it easy to u
 
 | File | Change |
 |---|---|
-| `app.py` | Add "Como Interpretar" as first tab |
-| `src/interpretive.py` | New file — all annotation and reading content |
+| `app.py` | Unpack 6 tabs (`tab0`–`tab5`); add "Como Interpretar" as first tab; update tab labels to reframed names |
+| `requirements.txt` | Update `streamlit>=1.30.0` → `streamlit>=1.31.0` |
+| `src/interpretive.py` | New file — `indicator_popover(code)`, `indicator_help_text(code)`, `leiden_principles()`, `recommended_readings()` |
+| `src/insights.py` | Reframe all three insight functions: `decomposition_insight()` (replace "impulsionado" / "mais fraco" with neutral composition framing), `gap_analysis_insight()` (replace "oportunidade de melhoria" with "diferença de perfil"), `benchmarking_insight()` (replace "foco prioritário de melhoria" with neutral comparative language) |
 | `tabs/tab0_interpretation.py` | New file — "Como Interpretar" tab renderer |
-| `tabs/tab1_decomposition.py` | Language reframing + ℹ️ popovers |
-| `tabs/tab2_gap_analysis.py` | Rename + reframe + ℹ️ popovers |
-| `tabs/tab3_deep_dive.py` | ℹ️ popovers on metric headers |
-| `tabs/tab4_simulator.py` | Rename + reframe intro text |
-| `tabs/tab5_benchmarking.py` | Rename + reframe caption |
+| `tabs/tab1_decomposition.py` | Language reframing + chart title "Composição do Escore" + ℹ️ popovers |
+| `tabs/tab2_gap_analysis.py` | Rename + reframe + chart title "Perfil dos Indicadores" + column renames + column_config help= |
+| `tabs/tab3_deep_dive.py` | column_config help= on metric headers |
+| `tabs/tab4_simulator.py` | Rename + reframe intro text; rename "Escore Simulado" → "Escore Hipotético"; rename "Impacto Ponderado" → "Peso no escore"; help= on sliders |
+| `tabs/tab5_benchmarking.py` | Rename + reframe caption; column_config help= on indicator columns |
+
+### Out-of-scope clarification
+Unit tests for `src/interpretive.py` (e.g., `tests/test_interpretive.py`) are **out of scope** for this implementation cycle. Content correctness is validated through manual review of the rendered tab.
 
 ---
 

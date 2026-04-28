@@ -14,22 +14,24 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|---|---|---|
-| `requirements.txt` | Modify | Bump streamlit pin to ≥1.31.0 |
-| `src/interpretive.py` | **Create** | All annotation content: indicator popovers, help text, Leiden principles, readings |
-| `src/insights.py` | Modify | Reframe all three insight functions to neutral language |
-| `tabs/tab0_interpretation.py` | **Create** | "Como Interpretar" tab renderer (5 blocks) |
-| `app.py` | Modify | Unpack 6 tabs, update tab labels |
-| `tabs/tab1_decomposition.py` | Modify | Chart title + popover after insight string |
-| `tabs/tab2_gap_analysis.py` | Modify | Tab rename, chart title, section header, column renames, column_config help= |
-| `tabs/tab3_deep_dive.py` | Modify | column_config help= on SciVal metric columns |
-| `tabs/tab4_simulator.py` | Modify | Rename, reframe text, metric labels, slider help=, rank caption placement |
-| `tabs/tab5_benchmarking.py` | Modify | Rename subheader, reframe caption, column_config help= on indicator columns |
+| File | Action | Model | Responsibility |
+|---|---|---|---|
+| `requirements.txt` | Modify | haiku | Bump streamlit pin to ≥1.31.0 |
+| `src/interpretive.py` | **Create** | sonnet | All annotation content: indicator popovers, help text, Leiden principles, readings |
+| `src/insights.py` | Modify | sonnet | Reframe all three insight functions to neutral language |
+| `tabs/tab0_interpretation.py` | **Create** | sonnet | "Como Interpretar" tab renderer (5 blocks) |
+| `app.py` | Modify | haiku | Unpack 6 tabs, update tab labels |
+| `tabs/tab1_decomposition.py` | Modify | sonnet | Subtitle + chart title + indicator popovers |
+| `tabs/tab2_gap_analysis.py` | Modify | sonnet | Subheader, chart title, section header, column renames, column_config help= |
+| `tabs/tab3_deep_dive.py` | Modify | haiku | column_config help= on SciVal metric columns |
+| `tabs/tab4_simulator.py` | Modify | sonnet | Rename, reframe text, metric labels, slider help=, rank caption placement |
+| `tabs/tab5_benchmarking.py` | Modify | haiku | Rename subheader, reframe caption, column_config help= on indicator columns |
 
 ---
 
 ## Task 1: Bump Streamlit version pin
+
+**Model: haiku** — single-line version string change.
 
 **Files:**
 - Modify: `requirements.txt`
@@ -63,6 +65,8 @@ git commit -m "chore: bump streamlit requirement to >=1.31.0 for st.popover supp
 ---
 
 ## Task 2: Create `src/interpretive.py`
+
+**Model: sonnet** — new module; full annotation text for 5 indicators, 10 Leiden principles, 5 readings must be authored correctly in Portuguese.
 
 All interpretive content lives here. No Streamlit calls except in `indicator_popover()`. Everything else returns plain Python data structures or strings.
 
@@ -408,6 +412,8 @@ git commit -m "feat: add src/interpretive.py — indicator annotations, Leiden p
 
 ## Task 3: Reframe `src/insights.py`
 
+**Model: sonnet** — requires authoring correct Portuguese framing for three insight functions; assertions verify language intent.
+
 Replace prescriptive language ("melhoria", "impulsionado", "mais fraco") with neutral descriptive language.
 
 **Files:**
@@ -528,6 +534,8 @@ git commit -m "refactor: reframe insights.py to neutral descriptive language"
 ---
 
 ## Task 4: Create `tabs/tab0_interpretation.py`
+
+**Model: sonnet** — new 230-line tab renderer with five structural blocks, conditional Leiden rendering logic, and link buttons.
 
 The new first tab. Five blocks. Imports `leiden_principles()` and `recommended_readings()` from `src.interpretive`. Does not import `indicator_popover` (the popovers belong to the data tabs, not this explanatory tab).
 
@@ -792,6 +800,8 @@ git commit -m "feat: add tabs/tab0_interpretation.py — Como Interpretar tab wi
 
 ## Task 5: Update `app.py` — 6-tab unpack + reframed labels
 
+**Model: haiku** — mechanical find/replace of one code block; exact replacement provided.
+
 **Files:**
 - Modify: `app.py:98–124`
 
@@ -896,6 +906,8 @@ git commit -m "feat: add Como Interpretar as first tab, reframe tab labels"
 
 ## Task 6: Update `tabs/tab1_decomposition.py`
 
+**Model: sonnet** — inserts new subtitle, renames chart title, and adds a multi-column popover row wired to `src.interpretive`.
+
 Changes: add subtitle; chart title rename; add `indicator_popover()` calls for each indicator after the chart.
 
 **Files:**
@@ -971,6 +983,8 @@ git commit -m "refactor: tab1 — add subtitle, rename chart title, add indicato
 ---
 
 ## Task 7: Update `tabs/tab2_gap_analysis.py`
+
+**Model: sonnet** — most changes in a single existing file: subheader, chart title, context caption, column renames, and `column_config` construction in the table block.
 
 Changes: add subheader; chart title rename; add context caption; add section header "Diferenças de perfil"; rename columns "Lacuna"→"Diferença" and "Impacto Ponderado"→"Peso no escore"; add `column_config` help=.
 
@@ -1082,6 +1096,8 @@ git commit -m "refactor: tab2 — add subheader, rename to Perfil dos Indicadore
 
 ## Task 8: Update `tabs/tab3_deep_dive.py`
 
+**Model: haiku** — one targeted insertion inside an existing loop; exact find/replace provided.
+
 Changes: add `column_config` help= to the broad-field overview dataframe columns for CpP and IRN metric names.
 
 **Files:**
@@ -1144,6 +1160,8 @@ git commit -m "refactor: tab3 — add column_config help= for CpP/IRN metric col
 ---
 
 ## Task 9: Update `tabs/tab4_simulator.py`
+
+**Model: sonnet** — six distinct changes spread across the file; requires careful placement of the rank caption inside `with col4:` and splitting the existing bottom caption into two parts.
 
 Changes: rename subheader; add intro text; rename "Escore Simulado"→"Escore Hipotético"; rename "Impacto Ponderado"→"Peso no escore"; add `help=` to sliders; move rank caption inside col4; trim bottom caption.
 
@@ -1306,6 +1324,8 @@ git commit -m "refactor: tab4 — rename to Explorar os Pesos, reframe text, Esc
 
 ## Task 10: Update `tabs/tab5_benchmarking.py`
 
+**Model: haiku** — three targeted edits: string rename, caption update, column_config dict comprehension. Exact replacements provided.
+
 Changes: rename subheader; update caption; add `column_config` help= to AR/ER/CpP/HI/IRN columns in the group table.
 
 **Files:**
@@ -1411,6 +1431,8 @@ git commit -m "refactor: tab5 — rename to Contexto Internacional, reframe capt
 ---
 
 ## Task 11: End-to-end smoke test and push
+
+**Model: sonnet** — launches the app, walks all 6 tabs, and interprets pass/fail output.
 
 - [ ] **Step 1: Run full app and verify all 6 tabs**
 

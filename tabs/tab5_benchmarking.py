@@ -12,6 +12,7 @@ from src.constants import (
     TARGET_UNIVERSITIES,
     UNIVERSITY_SHORT_NAMES,
 )
+from src.interpretive import indicator_help_text
 
 # Layout: which groups appear in the top regional section vs. international expander
 _REGIONAL_GROUPS = ["Líderes Brasileiras (excl. SP)", "Líderes Latino-Americanas", "Ibero-Americanas"]
@@ -125,7 +126,12 @@ def _render_group_table(df: pd.DataFrame) -> None:
         return [""] * len(row)
 
     styled = disp_df.style.apply(highlight_sp, axis=1)
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+
+    col_cfg = {
+        ind: st.column_config.TextColumn(ind, help=indicator_help_text(ind))
+        for ind in ["AR", "ER", "CpP", "HI", "IRN"]
+    }
+    st.dataframe(styled, use_container_width=True, hide_index=True, column_config=col_cfg)
 
 
 def _radar_chart(df: pd.DataFrame, title: str) -> go.Figure:
@@ -274,7 +280,7 @@ def render(
     selected_subject: str,
     selected_year: int,
 ) -> None:
-    st.subheader("Benchmarking com Pares")
+    st.subheader("Contexto Internacional")
 
     if qs_data.empty:
         st.warning("Nenhum dado QS carregado.")
@@ -282,7 +288,10 @@ def render(
 
     st.caption(
         f"Disciplina: **{selected_subject}** | Ano: **{selected_year}** | "
-        "Universidades SP destacadas em azul."
+        "Universidades SP destacadas em azul. "
+        "Compare o perfil das universidades paulistas com grupos institucionais "
+        "internacionais. Diferenças de escore refletem contextos históricos, "
+        "de financiamento e de missão distintos."
     )
 
     # ── Regional peers (top section) ─────────────────────────────────────────

@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from src.constants import UNIVERSITY_SHORT_NAMES, UNIVERSITY_COLORS
+from src.interpretive import indicator_help_text
 
 
 # Configurações de métricas por tipo de exportação SciVal
@@ -154,7 +155,24 @@ def _render_broad_field_overview(uni_data):
                 rows.append(row_data)
         if rows:
             st.markdown(f"**{label}**")
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            # Add help text to the score-index columns
+            _col_cfg = {}
+            if metric_type == "citations_per_faculty":
+                _col_cfg["Citações Normalizadas"] = st.column_config.NumberColumn(
+                    "Citações Normalizadas",
+                    help=indicator_help_text("CpP"),
+                )
+            elif metric_type == "irn":
+                _col_cfg["Índice IRN"] = st.column_config.NumberColumn(
+                    "Índice IRN",
+                    help=indicator_help_text("IRN"),
+                )
+            st.dataframe(
+                pd.DataFrame(rows),
+                use_container_width=True,
+                hide_index=True,
+                column_config=_col_cfg if _col_cfg else None,
+            )
 
 
 def _render_cross_area_chart(uni_data, metric_type, metric_configs, faculty_areas):

@@ -12,6 +12,7 @@ from src.constants import (
 )
 from src.weights import get_subject_weights
 from src.insights import gap_analysis_insight
+from src.interpretive import indicator_help_text
 
 
 def _format_rank(rank_val):
@@ -30,6 +31,8 @@ def _format_rank(rank_val):
 
 
 def render(qs_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
+    st.subheader("Perfil dos Indicadores")
+    st.caption("Compare o perfil de indicadores entre as universidades paulistas")
     if selected_subject == "(nenhuma disciplina disponível)":
         st.warning("Nenhuma disciplina disponível para esta grande área.")
         return
@@ -111,12 +114,16 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
 
     fig.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-        title=f"Análise de Lacunas — {focus_uni} vs. Pares Paulistas em {selected_subject}",
+        title=f"Perfil dos Indicadores — {focus_uni} vs. Pares Paulistas em {selected_subject}",
         height=500,
     )
     st.plotly_chart(fig, use_container_width=True)
+    st.caption(
+        "Diferenças de perfil refletem escolhas institucionais, contextos e históricos "
+        "distintos — não necessariamente lacunas a corrigir."
+    )
 
-    # Tabela de oportunidades
+    # Tabela de diferenças de perfil
     opportunities = []
     for ind in indicators_in_use:
         gap = peer_avg[ind] - focus_scores[ind]
@@ -138,9 +145,22 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
     st.markdown(f"**{gap_analysis_insight(focus_uni, selected_subject, opportunities)}**")
 
     if opportunities:
-        opp_df = pd.DataFrame(opportunities)[
-            ["Indicador", "Seu Escore", "Média das Pares", "Lacuna", "Peso", "Impacto Ponderado"]
-        ]
-        st.dataframe(opp_df, use_container_width=True, hide_index=True)
+        st.markdown("#### Diferenças de perfil")
+        opp_df = pd.DataFrame(opportunities).rename(columns={
+            "Lacuna": "Diferença",
+            "Impacto Ponderado": "Peso no escore",
+        })[["Indicador", "Seu Escore", "Média das Pares", "Diferença", "Peso", "Peso no escore"]]
+
+        col_cfg = {
+            "Diferença": st.column_config.TextColumn(
+                "Diferença",
+                help="Diferença entre o escore médio das pares e o escore desta universidade neste indicador.",
+            ),
+            "Peso no escore": st.column_config.TextColumn(
+                "Peso no escore",
+                help="Diferença ponderada pelo peso do indicador no escore total desta disciplina (em pontos).",
+            ),
+        }
+        st.dataframe(opp_df, use_container_width=True, hide_index=True, column_config=col_cfg)
     else:
-        st.success(f"{focus_uni} lidera ou empata com as pares em todos os indicadores!")
+        st.success(f"{focus_uni} está acima ou igual à média das pares em todos os indicadores!")

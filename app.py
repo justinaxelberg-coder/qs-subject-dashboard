@@ -95,13 +95,18 @@ st.session_state["selected_faculty"] = selected_faculty
 st.session_state["selected_year"] = selected_year
 
 # --- Tabs ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📖 Como Interpretar",
     "📊 Decomposição do Escore",
-    "🎯 Análise de Lacunas",
+    "🎯 Perfil dos Indicadores",
     "🔬 Análise Bibliométrica",
-    "🎛️ Simulador",
-    "🏛️ Benchmarking com Pares",
+    "🎛️ Explorar os Pesos",
+    "🏛️ Contexto Internacional",
 ])
+
+with tab0:
+    from tabs.tab0_interpretation import render
+    render()
 
 with tab1:
     from tabs.tab1_decomposition import render

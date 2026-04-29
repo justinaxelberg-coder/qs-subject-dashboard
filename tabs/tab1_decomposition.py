@@ -14,6 +14,7 @@ from src.constants import (
 from src.weights import get_subject_weights, calculate_weighted_contributions
 from src.insights import decomposition_insight
 from src.data_loader import filter_target_universities
+from src.interpretive import indicator_popover
 
 
 def _format_rank(rank_val):
@@ -32,6 +33,7 @@ def _format_rank(rank_val):
 
 
 def render(qs_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
+    st.caption("Entenda como o escore é construído a partir dos cinco indicadores")
     if selected_subject == "(nenhuma disciplina disponível)":
         st.warning("Nenhuma disciplina disponível para esta grande área.")
         return
@@ -100,7 +102,7 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
 
     fig.update_layout(
         barmode="stack",
-        title=f"Decomposição do Escore — {selected_subject} ({selected_year})",
+        title=f"Composição do Escore — {selected_subject} ({selected_year})",
         xaxis_title="Contribuição Ponderada ao Escore",
         yaxis_title="",
         legend_title="Indicador",
@@ -108,6 +110,15 @@ def render(qs_data, weights, selected_universities, selected_subject, selected_f
         margin=dict(l=10, r=10, t=50, b=50),
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    # Anotações dos indicadores
+    if indicators_in_use:
+        st.markdown("**Indicadores nesta disciplina:**")
+        ind_cols = st.columns(len(indicators_in_use))
+        for i, ind in enumerate(indicators_in_use):
+            with ind_cols[i]:
+                st.markdown(f"**{INDICATOR_NAMES.get(ind, ind)}**")
+                indicator_popover(ind)
 
     # Fórmula de pesos
     weight_parts = [

@@ -8,6 +8,7 @@ import numpy as np
 from src.constants import UNIVERSITY_SHORT_NAMES, INDICATOR_NAMES, INDICATOR_COLORS
 from src.weights import get_subject_weights
 from src.simulator import simulate_score_change
+from src.interpretive import indicator_help_text
 
 
 def _format_rank(rank_val):
@@ -127,7 +128,8 @@ def _estimate_bibliometric_changes(indicator, score_change, raw_context):
 
 
 def render(qs_data, scival_data, weights, selected_universities, selected_subject, selected_faculty, selected_year):
-    st.subheader(f"Simulador de Escore — {selected_subject}")
+    st.subheader(f"Explorar os Pesos — {selected_subject}")
+    st.markdown("Explore como os pesos de cada indicador determinam o escore final")
 
     if selected_subject == "(nenhuma disciplina disponível)":
         st.warning("Nenhuma disciplina disponível para esta grande área.")
@@ -174,7 +176,10 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
     raw_context = _get_scival_context(scival_data, focus_full, selected_faculty)
 
     st.markdown("---")
-    st.markdown("**Ajuste os escores dos indicadores para simular mudanças:**")
+    st.markdown(
+        "Ajuste os valores dos indicadores para entender como o modelo de ponderação "
+        "do QS funciona na prática. Este não é um plano de ação — é uma lente metodológica."
+    )
 
     adjusted_scores = {}
     cols = st.columns(len(indicators_in_use))
@@ -188,6 +193,7 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
                 value=current_scores[ind],
                 step=0.5,
                 key=f"sim_{focus_uni}_{selected_subject}_{ind}",
+                help=indicator_help_text(ind),
             )
 
     result = simulate_score_change(current_scores, adjusted_scores, subject_weights)
@@ -200,12 +206,13 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
     with col1:
         st.metric("Escore Atual", f"{result['current_total']:.1f}")
     with col2:
-        st.metric("Escore Simulado", f"{result['simulated_total']:.1f}",
+        st.metric("Escore Hipotético", f"{result['simulated_total']:.1f}",
                    delta=f"{result['delta']:+.1f}")
     with col3:
         st.metric("Posição Atual", rank_str)
     with col4:
-        st.metric("Posição Estimada", estimated_rank_str)
+        st.metric("Posição equivalente", estimated_rank_str)
+        st.caption("posição estimada assumindo que as demais instituições permanecem constantes")
 
     st.markdown("**Impacto por indicador:**")
     delta_data = []
@@ -220,7 +227,7 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
             "Atual": f"{current_scores.get(ind, 0):.1f}",
             "Ajustado": f"{adjusted_scores.get(ind, 0):.1f}",
             "Δ Escore": f"{score_change:+.1f}",
-            "Impacto Ponderado": f"{delta:+.1f} pts",
+            "Peso no escore": f"{delta:+.1f} pts",
         }
         delta_data.append(row_data)
 
@@ -264,10 +271,9 @@ def render(qs_data, scival_data, weights, selected_universities, selected_subjec
         _show_ranking_context(subject_df, focus_row, simulated_overall, selected_subject)
 
     st.caption(
-        "Nota: A estimativa de posição é aproximada — assume que os escores das demais "
-        "universidades permanecem constantes. As estimativas bibliométricas são aproximações "
-        "lineares com base nos dados SciVal atuais. Reputação Acadêmica e com Empregadores "
-        "são baseadas em pesquisas e mais difíceis de influenciar diretamente."
+        "Estimativas bibliométricas são aproximações lineares com base nos dados SciVal atuais. "
+        "Reputação Acadêmica e com Empregadores são baseadas em surveys e refletem percepções "
+        "acumuladas — mais difíceis de influenciar diretamente."
     )
 
 
